@@ -1,1 +1,1 @@
-# p8105_hw6_zg2486-
+This is HW6 for p8105.
