@@ -75,9 +75,27 @@ baltimore_model =
 
 baltimore_model %>% 
   knitr::kable(digits = 3)
-
-
 ```
 
+#### Glm for each city.
+```{r}
+each_city_model = 
+  homicide_df %>% 
+  mutate(resolved = as.numeric(resolution == "solved")) %>%
+  nest(data = -city_state) %>% 
+  mutate(
+    model = map(data, \(x) glm(resolved ~ victim_age + victim_race + victim_sex, 
+                data = x, family = binomial())),
+    results = map(model, broom::tidy, conf.int = TRUE)
+  ) %>% 
+  unnest(results) %>% 
+  filter(term == "victim_sexMale") %>% 
+  mutate(
+    OR = exp(estimate),
+    lower_ci = exp(conf.low),
+    upper_ci = exp(conf.high)
+  ) %>% 
+  select(city_state, OR, lower_ci, upper_ci)
+```
 
 
