@@ -122,6 +122,8 @@ each_city_plot =
 
 each_city_plot 
 ```
+New York,NY and Albuquerque, NM has the lowest and highest adjusted OR for solving homicides comparing male victims to female victims keeping all other variables fixed, respectively. We can also see lots of cities have 95% CI across 1, which means there is no statistical significance of solving homicides comparing male victims to female victims for these cities.
+
 
 # Problem 3
 #### Import and clean data.
@@ -154,6 +156,27 @@ bwt_df =
     mrace = fct_infreq(mrace),
     malform = as.logical(malform)) %>% 
   drop_na()
+```
 
+#### Propose a regression model for birthweight.
+```{r}
+bwt_model = 
+  lm(bwt ~ babysex + bhead + blength + delwt + frace + gaweeks + momage + mrace + ppbmi
+            + smoken + wtgain , data = bwt_df) 
+  
+birth_data = 
+  bwt_df %>% 
+  add_predictions(bwt_model) %>% 
+  add_residuals(bwt_model) %>% 
+  ggplot(aes(x = pred, y = resid)) + 
+  geom_point(alpha = 0.3) +
+  geom_smooth() +
+  labs(
+    title = "Residuals vs. Fitted Values",
+    x = "Fitted (Predicted) Values",
+    y = "Residuals"
+  )
+
+birth_data
 ```
 
