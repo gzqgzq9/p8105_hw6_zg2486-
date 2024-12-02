@@ -169,7 +169,7 @@ birth_data =
   add_predictions(bwt_model) %>% 
   add_residuals(bwt_model) %>% 
   ggplot(aes(x = pred, y = resid)) + 
-  geom_point(alpha = 0.3) +
+  geom_point(alpha = 0.5) +
   geom_smooth() +
   labs(
     title = "Residuals vs. Fitted Values",
@@ -179,4 +179,39 @@ birth_data =
 
 birth_data
 ```
+In the regression model, I assumed that baby's birth weight would associate with baby’s sex, baby’s head circumference at birth, baby’s length at birth, father’s race, gestational age in weeks, mother’s age at delivery, mother’s race, mother’s pre-pregnancy BMI, average number of cigarettes smoked per day during pregnancy, mother’s weight gain during pregnancy. These variables are not only related to babies' characteristics, but also related to parental characteristics. 
 
+#### Compare models by using cross-validation.
+```{r}
+cv_df = 
+  crossv_mc(bwt_df, 100) |> 
+  mutate(
+    train = map(train, as_tibble),
+    test = map(test, as_tibble)
+  )
+
+cv_results_df = 
+  cv_df %>% 
+  mutate(
+    bwt_model = map(train, \(x) lm(bwt ~ babysex + bhead + blength + delwt + frace + gaweeks + momage + mrace + ppbmi + smoken + wtgain , data = x)),
+    main_effect_model = map(train, \(x) lm(bwt ~ blength + gaweeks, data = x)),
+    interaction_model = map(train, \(x) lm(bwt ~ bhead * blength * babysex, data = x))
+  ) %>% 
+  mutate(
+    rmse_bwt = map2_dbl(bwt_model, test, rmse),
+    rmse_main_effect = map2_dbl(main_effect_model, test, rmse),
+    rmse_interaction = map2_dbl(interaction_model, test, rmse)
+  )
+
+cv_results_df %>% 
+  select(starts_with("rmse")) %>% 
+  pivot_longer(
+    everything(),
+    names_to = "model", 
+    values_to = "rmse",
+    names_prefix = "rmse_"
+  ) |> 
+  ggplot(aes(x = model, y = rmse)) + 
+  geom_violin()
+```
+The "bwt" model has the lowest RMSE distribution overall, indicating including as much as related variables likely performs better than the other models in terms of prediction accuracy. The "interaction" model has a slightly higher RMSE compared with "bwt" model, indicating the performance of prediction accuracy could be be improved. The "main_effect" model has the highest RMSE and the widest spread, indicating poor performance of prediction accuracy and we might need more variables to improve the prediction accuracy. 
