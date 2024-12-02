@@ -101,7 +101,7 @@ each_city_model =
   select(city_state, OR, lower_ci, upper_ci) 
 
 each_city_model %>% 
-  knitr::kable(digits = )
+  knitr::kable(digits = 3)
 ```
 
 #### Create a plot that shows the estimated ORs and CIs for each city.
@@ -120,7 +120,40 @@ each_city_plot =
     y = "Estimated OR with CI"
   )
 
-each_city_plot
+each_city_plot 
 ```
 
+# Problem 3
+#### Import and clean data.
+```{r}
+bwt_df = 
+  read_csv("./data/birthweight.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(
+    babysex = 
+        case_match(babysex,
+            1 ~ "male",
+            2 ~ "female"
+        ),
+    babysex = fct_infreq(babysex),
+    frace = 
+        case_match(frace,
+            1 ~ "white",
+            2 ~ "black", 
+            3 ~ "asian", 
+            4 ~ "puerto rican", 
+            8 ~ "other"),
+    frace = fct_infreq(frace),
+    mrace = 
+        case_match(mrace,
+            1 ~ "white",
+            2 ~ "black", 
+            3 ~ "asian", 
+            4 ~ "puerto rican",
+            8 ~ "other"),
+    mrace = fct_infreq(mrace),
+    malform = as.logical(malform)) %>% 
+  drop_na()
+
+```
 
