@@ -32,6 +32,62 @@ set.seed(1)
 ```
 
 # Problem 1
+```{r}
+weather_df = 
+  rnoaa::meteo_pull_monitors(
+    c("USW00094728"),
+    var = c("PRCP", "TMIN", "TMAX"), 
+    date_min = "2017-01-01",
+    date_max = "2017-12-31") %>%
+  mutate(
+    name = recode(id, USW00094728 = "CentralPark_NY"),
+    tmin = tmin / 10,
+    tmax = tmax / 10) %>%
+  select(name, id, everything())
+
+boot_sample =
+  modelr::bootstrap(weather_df, 5000)
+
+boot_sample_results =
+  boot_sample %>%
+  mutate(
+    model = map(strap, ~ lm(tmax ~ tmin, data = as_tibble(.x))),
+    r_squared = map_dbl(model, ~ broom::glance(.x)[["r.squared"]]),
+    log_coef_product = map_dbl(model, ~ {
+      coef_vals <- broom::tidy(.x) %>% 
+      
+      pull(estimate)
+      
+      log(coef_vals[1] * coef_vals[2])
+    })
+  )
+
+r_squared_plot =
+  boot_sample_results %>% 
+  ggplot(aes(x = r_squared)) +
+  geom_density(fill = "red", alpha = 0.5) +
+  labs(title = "Distribution of R-squared of 5000 Bootstrap Samples",
+       x = "R-squared",
+       y = "Density"
+       ) 
+
+r_squared_plot
+
+log_coef_product_plot = 
+boot_sample_results %>%
+  ggplot(aes(x = log_coef_product)) +
+  geom_density(fill = "yellow", alpha = 0.5) +
+  labs(title = "Distribution of log(beta0 ∗ beta1) of 5000 Bootstrap Samples",
+       x = "log(beta0 * beta1)",
+       y = "Density"
+       )
+
+log_coef_product_plot
+```
+
+```{r}
+
+```
 
 
 # Problem 2
