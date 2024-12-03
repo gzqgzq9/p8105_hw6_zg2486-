@@ -53,12 +53,12 @@ boot_sample_results =
   mutate(
     model = map(strap, ~ lm(tmax ~ tmin, data = as_tibble(.x))),
     r_squared = map_dbl(model, ~ broom::glance(.x)[["r.squared"]]),
-    log_coef_product = map_dbl(model, ~ {
-      coef_vals <- broom::tidy(.x) %>% 
+    log_beta_product = map_dbl(model, ~ {
+      beta_vals <- broom::tidy(.x) %>% 
       
       pull(estimate)
       
-      log(coef_vals[1] * coef_vals[2])
+      log(beta_vals[1] * beta_vals[2])
     })
   )
 
@@ -73,20 +73,34 @@ r_squared_plot =
 
 r_squared_plot
 
-log_coef_product_plot = 
+log_beta_product_plot = 
 boot_sample_results %>%
-  ggplot(aes(x = log_coef_product)) +
+  ggplot(aes(x = log_beta_product)) +
   geom_density(fill = "yellow", alpha = 0.5) +
-  labs(title = "Distribution of log(beta0 ∗ beta1) of 5000 Bootstrap Samples",
+  labs(title = "Distribution of log(beta0 x beta1) of 5000 Bootstrap Samples",
        x = "log(beta0 * beta1)",
        y = "Density"
        )
 
-log_coef_product_plot
+log_beta_product_plot
 ```
 
 ```{r}
+r_squared_CI = 
+  quantile(
+    boot_sample_results %>% 
+    pull(r_squared), c(0.025, 0.975))
 
+print(paste("95% Confidence Interval for R^2:", r_squared_CI))
+```
+
+```{r}
+log_beta_product_CI = 
+  quantile(
+    boot_sample_results %>% 
+    pull(log_beta_product), c(0.025, 0.975))
+
+print(paste("95% Confidence Interval for log(beta0 * beta1):", log_beta_product_CI))
 ```
 
 
